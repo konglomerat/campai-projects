@@ -46,6 +46,8 @@ The purpose of these scripts is to let people at Konglomerat add bookings for re
 
 ### To-DO
 
-- [ ] File uploads for receipts (Campai requires a pre-signed upload URL flow)
+- [X] File uploads for receipts (Campai requires a pre-signed upload URL flow)
+- [ ] Rückerstattungen
 - [ ] Error Handling
 - [ ] Eigenbelege
+

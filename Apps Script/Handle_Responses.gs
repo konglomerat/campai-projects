@@ -28,7 +28,7 @@ function createExpenseReceipt(e) {
   const debitorName       = get('Sender');                   // text
   const headerAccount = isExpense ? creditorNumber : debitorNumber; //Hardcoded Sammelaccounts für Ausgabe bzw. Einnahme
   const costCenter2   = parseInt((get('Bereich') || '').split('–')[0], 10) || null;
-  const tags          = [((get('Bereich') || '').split('–')[1] || '').trim()].filter(Boolean); //splits off number, trims whitespace and filters empty string
+  const tags = [((get('Bereich') || '').split('–')[1] || '').replace(/^_+/, '').trim()].filter(Boolean);
 
   // === Set Endpoint based on type of receipt ===
   const urlBase = `https://cloud.campai.com/api/${ORG_ID}/${MANDATE_ID}`;
