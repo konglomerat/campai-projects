@@ -12,32 +12,38 @@ function refreshReceiptsSheet(opts) {
   const ORG_ID     = p.getProperty('ORG_ID');
   const MANDATE_ID = p.getProperty('MANDATE_ID');
 
+  const receiptsUrl = `https://cloud.campai.com/api/${ORG_ID}/${MANDATE_ID}/finance/receipts/list`;
+  const mandateUrl  = `https://cloud.campai.com/api/organizations/${ORG_ID}/mandates/${MANDATE_ID}`;
+
+  // 1) Fetch cost centers once → build { number: label } map
+  const ccMap = getCostCenterMap_(mandateUrl, API_KEY);
+
   const allRows = [];
   let offset = 0;
   let counter = 1;
 
-  const url = `https://cloud.campai.com/api/${ORG_ID}/${MANDATE_ID}/finance/receipts/list`;
   const ss = SpreadsheetApp.getActive();
   const sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
   const header = [
     'ID',
     'Beleg ID',
-    'Bezahlt am',
+    'Datum Zahlung',
     'Sphäre',
-    'Bereich',
+    'Bereich Nummer',
+    'Bereich Name',
     'Account ID',
     'Account Name',
     'Position',
     'Beschreibung',
-    'Gesamtbetrag',
+    'Betrag Gesamt',
     'Status',
     'Notizen',
     'Tags',
-    'Fällig Bis',
-    'Erstellungsdatum',
-    'Update Datum',
+    'Datum Fälligkeit',
+    'Datum Erstellung',
+    'Datum Update',
     'Belegnummer',
-    'Belegdatum',
+    'Datum Beleg',
     'Beleg Datei',
     'paymentdifference',
     'refund',
@@ -54,7 +60,7 @@ function refreshReceiptsSheet(opts) {
 
     Logger.log('API fetch body: %s', JSON.stringify(body, null, 2)); 
 
-    const res = UrlFetchApp.fetch(url, {
+    const res = UrlFetchApp.fetch(receiptsUrl, {
       method: 'post',
       contentType: 'application/json',
       headers: { 'X-API-Key': API_KEY },
@@ -76,12 +82,16 @@ function refreshReceiptsSheet(opts) {
       if (!positions.length) continue;
 
       for (const p of positions) {
+        
+        const cc2Name = p.costCenter2 === '' ? '' : (ccMap[p.costCenter2] || '');
+
         allRows.push([
           counter++,
           r._id || '',
           r.paidAt || '',
           Number(p.costCenter1),
           Number(p.costCenter2),
+          cc2Name,
           Number(r.account),
           r.accountName || '',
           p.description || '',
@@ -118,7 +128,28 @@ function refreshReceiptsSheet(opts) {
   Logger.log(`Wrote ${allRows.length} receipts to "${sheetName}".`);
 }
 
-/** Helpers */
+/** =========== Helpers =============== */
+
+/** Fetch mandate and return a { number: label } map for cost centers */
+function getCostCenterMap_(mandateUrl, apiKey) {
+  const res = UrlFetchApp.fetch(mandateUrl, {
+    method: 'get',
+    headers: { 'X-API-Key': apiKey },
+    muteHttpExceptions: true
+  });
+  if (res.getResponseCode() !== 200) {
+    throw new Error(`Mandate API ${res.getResponseCode()}: ${res.getContentText()}`);
+  }
+  const data = JSON.parse(res.getContentText());
+  const list = Array.isArray(data.costCenters) ? data.costCenters : [];
+  const map = {};
+  for (const cc of list) {
+    // keys as Numbers so lookups with Number(costCenterX) work reliably
+    if (cc && cc.number != null) map[Number(cc.number)] = cc.label || '';
+  }
+  return map;
+}
+
 function signedEur(type, cents) {
   if (cents == null || cents === '') return '';
   const sign = (type === 'expense') ? -1 : 1;
