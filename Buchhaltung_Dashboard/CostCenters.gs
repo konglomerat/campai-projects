@@ -2,9 +2,10 @@
  * Fetch cost centers for the mandate and write to a sheet.
  */
 function refreshCostCentersSheet() {
-  const API_KEY    = 'YOUR_API_KEY_HERE';
-  const ORG_ID     = '67f6ef856a53aa169bdc05b2';
-  const MANDATE_ID = '6825d7bb46f4de83f0461115';
+  const p = PropertiesService.getScriptProperties();
+  const API_KEY    = p.getProperty('CAMPAI_API_KEY');
+  const ORG_ID     = p.getProperty('ORG_ID');
+  const MANDATE_ID = p.getProperty('MANDATE_ID');
   const SHEET_NAME = 'CostcenterLookup';
 
   const url = `https://cloud.campai.com/api/organizations/${ORG_ID}/mandates/${MANDATE_ID}`;
