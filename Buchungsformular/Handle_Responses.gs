@@ -23,7 +23,7 @@ function createExpenseReceipt(e) {
   const creditorManual   = get('Kreditor (Eingabe)') || '';
   const [creditorDropdownNumber, creditorDropdownName] = (get('Kreditor (Liste)') || '').split('–').map(s => s.trim());
   const creditorName = creditorManual || creditorDropdownName;
-  const creditorNumber = creditorManual ? 700014 : parseInt(creditorDropdownNumber, 10) || null;
+  const creditorNumber = creditorManual ? c : parseInt(creditorDropdownNumber, 10) || null;
   const debitorNumber = 100511;
   const debitorName       = get('Sender');                   // text
   const headerAccount = isExpense ? creditorNumber : debitorNumber; //Hardcoded Sammelaccounts für Ausgabe bzw. Einnahme
